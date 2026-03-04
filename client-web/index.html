@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart ERP 4.0 — Reservez votre vehicule</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Arial, sans-serif;
+           background: #f1f5f9; color: #1e293b; }
+
+    /* HEADER */
+    header {
+      background: linear-gradient(135deg, #1e3a8a, #2563eb);
+      color: white; padding: 20px 40px;
+      display: flex; align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+    .logo { display: flex; align-items: center; gap: 12px; }
+    .logo span { font-size: 28px; }
+    .logo h1 { font-size: 22px; font-weight: 700; }
+    .logo p { font-size: 13px; opacity: 0.8; }
+
+    /* HERO */
+    .hero {
+      background: linear-gradient(135deg, #1d4ed8, #7c3aed);
+      color: white; text-align: center; padding: 60px 20px;
+    }
+    .hero h2 { font-size: 36px; font-weight: 800; margin-bottom: 12px; }
+    .hero p  { font-size: 18px; opacity: 0.85; }
+
+    /* FILTRES */
+    .filtres {
+      background: white; padding: 20px 40px;
+      display: flex; gap: 16px; flex-wrap: wrap;
+      align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .filtres label { font-weight: 600; font-size: 14px; color: #374151; }
+    .filtres select, .filtres input {
+      padding: 10px 14px; border: 1px solid #d1d5db;
+      border-radius: 8px; font-size: 14px;
+      outline: none; cursor: pointer;
+    }
+    .filtres select:focus, .filtres input:focus {
+      border-color: #2563eb; box-shadow: 0 0 0 3px #dbeafe;
+    }
+
+    /* GRILLE VEHICULES */
+    .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+    .section-title {
+      font-size: 24px; font-weight: 700; color: #1e293b;
+      margin-bottom: 24px;
+    }
+    .vehicules-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 24px;
+    }
+
+    /* CARTE VEHICULE */
+    .vehicule-card {
+      background: white; border-radius: 16px;
+      overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+      transition: transform 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+    }
+    .vehicule-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+    }
+    .vehicule-img {
+      width: 100%; height: 200px; object-fit: cover;
+      background: linear-gradient(135deg, #e0f2fe, #dbeafe);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 80px;
+    }
+    .vehicule-img img {
+      width: 100%; height: 200px; object-fit: cover;
+    }
+    .vehicule-info { padding: 20px; }
+    .vehicule-name {
+      font-size: 20px; font-weight: 700;
+      color: #1e293b; margin-bottom: 4px;
+    }
+    .vehicule-immat {
+      font-size: 13px; color: #94a3b8;
+      font-family: monospace; margin-bottom: 12px;
+    }
+    .vehicule-tags {
+      display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;
+    }
+    .tag {
+      background: #eff6ff; color: #2563eb;
+      padding: 4px 10px; border-radius: 20px;
+      font-size: 12px; font-weight: 600;
+    }
+    .vehicule-prix {
+      display: flex; justify-content: space-between;
+      align-items: center;
+    }
+    .prix { font-size: 24px; font-weight: 800; color: #2563eb; }
+    .prix span { font-size: 13px; color: #94a3b8; font-weight: 400; }
+    .btn-reserver {
+      background: #2563eb; color: white;
+      border: none; border-radius: 8px;
+      padding: 10px 20px; font-size: 14px;
+      font-weight: 600; cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-reserver:hover { background: #1d4ed8; }
+
+    /* MODAL RESERVATION */
+    .overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6);
+      display: none; align-items: center;
+      justify-content: center; z-index: 1000;
+    }
+    .overlay.active { display: flex; }
+    .modal {
+      background: white; border-radius: 20px;
+      padding: 40px; width: 100%;
+      max-width: 560px; max-height: 90vh;
+      overflow-y: auto; position: relative;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .modal-close {
+      position: absolute; top: 16px; right: 16px;
+      background: #f1f5f9; border: none;
+      border-radius: 50%; width: 36px; height: 36px;
+      font-size: 18px; cursor: pointer;
+    }
+    .modal h3 { font-size: 22px; font-weight: 700;
+                margin-bottom: 8px; color: #1e293b; }
+    .modal-vehicule {
+      background: #eff6ff; border-radius: 12px;
+      padding: 16px; margin-bottom: 24px;
+      display: flex; align-items: center; gap: 16px;
+    }
+    .modal-vehicule .emoji { font-size: 40px; }
+    .form-group { margin-bottom: 18px; }
+    .form-group label {
+      display: block; margin-bottom: 6px;
+      font-weight: 600; font-size: 14px; color: #374151;
+    }
+    .form-group input, .form-group select {
+      width: 100%; padding: 12px;
+      border: 1px solid #d1d5db; border-radius: 8px;
+      font-size: 14px; outline: none;
+    }
+    .form-group input:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px #dbeafe;
+    }
+    .form-row { display: grid;
+      grid-template-columns: 1fr 1fr; gap: 16px; }
+    .recap {
+      background: #f8fafc; border-radius: 12px;
+      padding: 16px; margin: 20px 0;
+    }
+    .recap-ligne {
+      display: flex; justify-content: space-between;
+      font-size: 14px; padding: 6px 0;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .recap-total {
+      display: flex; justify-content: space-between;
+      font-size: 18px; font-weight: 700;
+      color: #2563eb; padding: 10px 0 0;
+    }
+    .btn-confirmer {
+      width: 100%; padding: 16px;
+      background: #2563eb; color: white;
+      border: none; border-radius: 10px;
+      font-size: 16px; font-weight: 700;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .btn-confirmer:hover { background: #1d4ed8; }
+    .btn-confirmer:disabled {
+      background: #93c5fd; cursor: not-allowed;
+    }
+
+    /* SUCCES */
+    .succes {
+      text-align: center; padding: 40px 20px;
+    }
+    .succes .icon { font-size: 60px; margin-bottom: 16px; }
+    .succes h3 { color: #16a34a; font-size: 24px; margin-bottom: 8px; }
+
+    /* LOADING */
+    .loading { text-align: center; padding: 60px; color: #64748b; }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 4px solid #e2e8f0;
+      border-top-color: #2563eb;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    footer {
+      background: #0f172a; color: #94a3b8;
+      text-align: center; padding: 24px;
+      font-size: 14px; margin-top: 60px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo">
+      <span>🚗</span>
+      <div>
+        <h1>Smart ERP 4.0</h1>
+        <p>Agence de location de vehicules</p>
+      </div>
+    </div>
+    <div style="color:white; font-size:14px; opacity:0.8">
+      📞 +216 XX XXX XXX
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <div class="hero">
+    <h2>Reservez votre vehicule en ligne</h2>
+    <p>Choisissez parmi notre flotte disponible — Confirmation instantanee</p>
+  </div>
+
+  <!-- FILTRES -->
+  <div class="filtres">
+    <div>
+      <label>Categorie</label>
+      <select id="filtreCategorie" onchange="filtrerVehicules()">
+        <option value="">Toutes</option>
+        <option value="citadine">Citadine</option>
+        <option value="berline">Berline</option>
+        <option value="suv">SUV</option>
+        <option value="utilitaire">Utilitaire</option>
+      </select>
+    </div>
+    <div>
+      <label>Date debut</label>
+      <input type="date" id="filtreDebut" onchange="filtrerVehicules()">
+    </div>
+    <div>
+      <label>Date fin</label>
+      <input type="date" id="filtreFin" onchange="filtrerVehicules()">
+    </div>
+    <div>
+      <label>Prix max / jour</label>
+      <select id="filtrePrix" onchange="filtrerVehicules()">
+        <option value="">Tous les prix</option>
+        <option value="50">Moins de 50 EUR</option>
+        <option value="80">Moins de 80 EUR</option>
+        <option value="100">Moins de 100 EUR</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- GRILLE -->
+  <div class="container">
+    <p class="section-title" id="compteur">Chargement des vehicules...</p>
+    <div class="vehicules-grid" id="vehiculesGrid">
+      <div class="loading">
+        <div class="spinner"></div>
+        <p>Chargement de la flotte...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL RESERVATION -->
+  <div class="overlay" id="overlay">
+    <div class="modal">
+      <button class="modal-close" onclick="fermerModal()">x</button>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
+  <footer>
+    Smart ERP 4.0 &mdash; Agence de location de vehicules &mdash; Tous droits reserves
+  </footer>
+
+  <script>
+    // ===== CONFIGURATION =====
+    const API_URL = 'http://localhost:5000/api/public';
+    // En production, remplace par ton URL Railway :
+    // const API_URL = 'https://smart-erp-backend.railway.app/api/public';
+
+    let tousVehicules = [];
+    let vehiculeSelectionne = null;
+
+    // ===== CHARGEMENT =====
+    async function chargerVehicules() {
+      try {
+        const res = await fetch(API_URL + '/vehicules');
+        tousVehicules = await res.json();
+        afficherVehicules(tousVehicules);
+      } catch (err) {
+        document.getElementById('vehiculesGrid').innerHTML =
+          '<p style="color:#dc2626;text-align:center">Erreur de connexion au serveur</p>';
+      }
+    }
+
+    // ===== AFFICHAGE =====
+    function afficherVehicules(vehicules) {
+      const grid = document.getElementById('vehiculesGrid');
+      const compteur = document.getElementById('compteur');
+      compteur.textContent = vehicules.length + ' vehicule(s) disponible(s)';
+
+      if (vehicules.length === 0) {
+        grid.innerHTML = '<p style="text-align:center;color:#94a3b8;padding:60px">Aucun vehicule disponible pour ces criteres</p>';
+        return;
+      }
+
+      grid.innerHTML = vehicules.map(v => `
+        <div class="vehicule-card" onclick="ouvrirModal(${v.id})">
+          <div class="vehicule-img">
+            ${v.image_url
+              ? `<img src="${v.image_url}" alt="${v.marque} ${v.modele}">` 
+              : '🚗'}
+          </div>
+          <div class="vehicule-info">
+            <div class="vehicule-name">${v.marque} ${v.modele}</div>
+            <div class="vehicule-immat">${v.immatriculation}</div>
+            <div class="vehicule-tags">
+              <span class="tag">${v.categorie || 'Standard'}</span>
+              <span class="tag">${v.annee}</span>
+              <span class="tag">${(v.kilometrage||0).toLocaleString()} km</span>
+            </div>
+            <div class="vehicule-prix">
+              <div class="prix">${v.prix_location_jour} EUR<span>/jour</span></div>
+              <button class="btn-reserver" onclick="event.stopPropagation();ouvrirModal(${v.id})">
+                Reserver
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // ===== FILTRES =====
+    function filtrerVehicules() {
+      const cat   = document.getElementById('filtreCategorie').value;
+      const prix  = document.getElementById('filtrePrix').value;
+      let filtres = tousVehicules;
+      if (cat)  filtres = filtres.filter(v => v.categorie === cat);
+      if (prix) filtres = filtres.filter(v => v.prix_location_jour <= parseFloat(prix));
+      afficherVehicules(filtres);
+    }
+
+    // ===== MODAL =====
+    function ouvrirModal(vehiculeId) {
+      vehiculeSelectionne = tousVehicules.find(v => v.id === vehiculeId);
+      if (!vehiculeSelectionne) return;
+      const v = vehiculeSelectionne;
+
+      // Date min = aujourd'hui
+      const today = new Date().toISOString().split('T')[0];
+      const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+
+      document.getElementById('modalContent').innerHTML = `
+        <h3>Reserver ce vehicule</h3>
+        <p style="color:#64748b;margin-bottom:20px">Remplissez le formulaire ci-dessous</p>
+
+        <div class="modal-vehicule">
+          <div class="emoji">${v.image_url ? '' : '🚗'}</div>
+          <div>
+            <strong style="font-size:18px">${v.marque} ${v.modele}</strong><br>
+            <span style="color:#64748b">${v.immatriculation} — ${v.annee}</span><br>
+            <span style="color:#2563eb;font-weight:700">${v.prix_location_jour} EUR/jour</span>
+          </div>
+        </div>
+
+        <h4 style="margin-bottom:16px;color:#374151">Vos informations</h4>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Prenom</label>
+            <input type="text" id="clientPrenom" placeholder="Votre prenom" required>
+          </div>
+          <div class="form-group">
+            <label>Nom</label>
+            <input type="text" id="clientNom" placeholder="Votre nom" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="clientEmail" placeholder="votre@email.com" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Telephone</label>
+            <input type="tel" id="clientTel" placeholder="+216 XX XXX XXX">
+          </div>
+          <div class="form-group">
+            <label>N° Permis de conduire</label>
+            <input type="text" id="clientPermis" placeholder="Ex: B-12345" required>
+          </div>
+        </div>
+
+        <h4 style="margin-bottom:16px;color:#374151">Dates de location</h4>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Date debut</label>
+            <input type="date" id="resaDebut" min="${today}" value="${today}" onchange="calculerPrix()">
+          </div>
+          <div class="form-group">
+            <label>Date fin</label>
+            <input type="date" id="resaFin" min="${tomorrow}" value="${tomorrow}" onchange="calculerPrix()">
+          </div>
+        </div>
+
+        <div class="recap" id="recap">
+          <div class="recap-ligne">
+            <span>Prix par jour</span>
+            <span>${v.prix_location_jour} EUR</span>
+          </div>
+          <div class="recap-ligne">
+            <span>Nombre de jours</span>
+            <span id="nbJours">1</span>
+          </div>
+          <div class="recap-ligne">
+            <span>Caution</span>
+            <span>500 EUR</span>
+          </div>
+          <div class="recap-total">
+            <span>Total</span>
+            <span id="prixTotal">${v.prix_location_jour} EUR</span>
+          </div>
+        </div>
+
+        <button class="btn-confirmer" id="btnConfirmer" onclick="confirmerReservation()">
+          Confirmer ma reservation
+        </button>
+      `;
+
+      document.getElementById('overlay').classList.add('active');
+      calculerPrix();
+    }
+
+    function fermerModal() {
+      document.getElementById('overlay').classList.remove('active');
+    }
+
+    function calculerPrix() {
+      const debut = new Date(document.getElementById('resaDebut')?.value);
+      const fin   = new Date(document.getElementById('resaFin')?.value);
+      if (!debut || !fin || fin <= debut) return;
+      const jours = Math.ceil((fin - debut) / (1000*60*60*24));
+      const total = jours * vehiculeSelectionne.prix_location_jour;
+      document.getElementById('nbJours').textContent   = jours;
+      document.getElementById('prixTotal').textContent = total + ' EUR';
+    }
+
+    // ===== CONFIRMER RESERVATION =====
+    async function confirmerReservation() {
+      const btn = document.getElementById('btnConfirmer');
+      const prenom  = document.getElementById('clientPrenom').value.trim();
+      const nom     = document.getElementById('clientNom').value.trim();
+      const email   = document.getElementById('clientEmail').value.trim();
+      const tel     = document.getElementById('clientTel').value.trim();
+      const permis  = document.getElementById('clientPermis').value.trim();
+      const debut   = document.getElementById('resaDebut').value;
+      const fin     = document.getElementById('resaFin').value;
+
+      if (!prenom || !nom || !email || !permis || !debut || !fin) {
+        alert('Veuillez remplir tous les champs obligatoires');
+        return;
+      }
+
+      btn.disabled     = true;
+      btn.textContent  = 'Confirmation en cours...';
+
+      try {
+        const res = await fetch(API_URL + '/reservations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            vehicule_id:      vehiculeSelectionne.id,
+            date_debut:       debut,
+            date_fin:         fin,
+            client_prenom:    prenom,
+            client_nom:       nom,
+            client_email:     email,
+            client_telephone: tel,
+            client_permis:    permis,
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('modalContent').innerHTML = `
+            <div class="succes">
+              <div class="icon">✅</div>
+              <h3>Reservation confirmee !</h3>
+              <p style="color:#64748b;margin:8px 0">
+                Votre reservation #${data.reservation_id} est confirmee.
+              </p>
+              <p style="font-size:20px;font-weight:700;color:#2563eb;margin:16px 0">
+                Total : ${data.prix_total} EUR
+              </p>
+              <p style="color:#64748b;font-size:14px">
+                Un email de confirmation vous sera envoye a ${email}
+              </p>
+              <button onclick="fermerModal();chargerVehicules()"
+                style="margin-top:24px;padding:12px 24px;background:#2563eb;
+                       color:white;border:none;border-radius:8px;
+                       font-size:15px;font-weight:600;cursor:pointer">
+                Retour a la liste
+              </button>
+            </div>
+          `;
+        } else {
+          alert('Erreur : ' + (data.message || 'Reservation echouee'));
+          btn.disabled    = false;
+          btn.textContent = 'Confirmer ma reservation';
+        }
+      } catch (err) {
+        alert('Erreur de connexion au serveur');
+        btn.disabled    = false;
+        btn.textContent = 'Confirmer ma reservation';
+      }
+    }
+
+    // Fermer le modal en cliquant dehors
+    document.getElementById('overlay').addEventListener('click', function(e) {
+      if (e.target === this) fermerModal();
+    });
+
+    // Date min = aujourd'hui
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('filtreDebut').min = today;
+    document.getElementById('filtreFin').min = today;
+
+    // Charger au demarrage
+    chargerVehicules();
+  </script>
+</body>
+</html>
