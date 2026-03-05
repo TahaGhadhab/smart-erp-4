@@ -1,5 +1,5 @@
 const express = require('express');
-const cors = require('cors');
+const cors    = require('cors');
 require('dotenv').config();
 
 const app = express();
@@ -8,9 +8,10 @@ app.use(cors({
   origin: [
     'http://localhost:5173',
     'http://localhost:3000',
-    'https://smart-erp-client.vercel.app',  // <-- ton URL Vercel
-    '*'  // En developpement seulement
-  ]
+    'https://smart-erp-4.vercel.app',
+    'https://smart-erp-client.vercel.app',
+  ],
+  credentials: true
 }));
 
 app.use(express.json());
@@ -22,14 +23,13 @@ app.use('/api/reservations', require('./routes/reservations.routes'));
 app.use('/api/maintenances', require('./routes/maintenances.routes'));
 app.use('/api/dashboard',    require('./routes/dashboard.routes'));
 app.use('/api/ml',           require('./routes/ml.routes'));
-app.use('/api/public', require('./routes/public.routes'));
+app.use('/api/public',       require('./routes/public.routes'));
+
 app.get('/', (req, res) => {
   res.json({ message: 'Smart ERP 4.0 — API operationnelle', version: '1.0.0' });
 });
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log('\n✅ Smart ERP 4.0 Backend demarre');
-  console.log('📡 API : http://localhost:' + PORT);
-  console.log('🗄️  DB  : smart_erp_db\n');
+  console.log('✅ Smart ERP 4.0 Backend demarre sur port ' + PORT);
 });
