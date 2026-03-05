@@ -5,13 +5,7 @@ require('dotenv').config();
 const app = express();
 
 app.use(cors({
-  origin: [
-    'http://localhost:5173',
-    'http://localhost:3000',
-    'https://smart-erp-4.vercel.app',
-    'https://smart-erp-client.vercel.app',
-  ],
-  credentials: true
+  origin: '*'
 }));
 
 app.use(express.json());
